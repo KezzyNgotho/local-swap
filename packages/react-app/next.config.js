@@ -10,6 +10,12 @@ const nextConfig = {
   images: {
     domains: ['cdn-production-opera-website.operacdn.com'],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;

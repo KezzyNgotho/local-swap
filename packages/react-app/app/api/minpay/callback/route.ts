@@ -47,7 +47,11 @@ export async function POST(request: Request) {
             }
 
             const wallet = new ethers.Wallet(privateKey, provider);
-            const contract = new ethers.Contract(P2P_ESCROW_ADDRESS!, P2PEscrowABI, wallet);
+            const contract = new ethers.Contract(
+                P2P_ESCROW_ADDRESS!,
+                P2PEscrowABI.abi, // Use the .abi property from the imported JSON
+                wallet
+            );
 
             // Complete the trade on the blockchain
             const tx = await contract.completeTrade(trade_id);

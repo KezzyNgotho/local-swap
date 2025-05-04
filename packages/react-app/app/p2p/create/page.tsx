@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useContractWrite, type UseContractWriteConfig } from 'wagmi';
+import { useAccount, useContractWrite, type BaseError } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useP2PExchange } from '../../../hooks/useP2PExchange';
 import { toast } from 'sonner';
 import { parseEther } from 'viem';
-import contractAddresses from '../../../contracts/addresses.json';
-import { erc20ABI } from '../../../contracts/abis/erc20';
+import { erc20Abi } from 'viem';
+import P2PEscrowABI from '../../../contracts/P2PEscrow.json';
+
+const P2P_ESCROW_ADDRESS = process.env.NEXT_PUBLIC_P2P_ESCROW_ADDRESS;
 
 const currencies = [
   { symbol: 'USDT', address: '0x4cA2A3EE452CE28E64aE945E371A9f52105D82C5', name: 'Tether USD', icon: '₮' },
@@ -76,72 +78,65 @@ export default function CreateTrade() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Token approval
-  const { writeAsync: approveToken, isLoading: isApproving } = useContractWrite({
-    abi: erc20ABI,
+  const { writeContract: approveToken, isPending: isApproving } = useContractWrite({
+    mutation: {
+      onSuccess: () => {
+        toast.success('Token approved successfully!');
+      },
+      onError: (error) => {
+        toast.error((error as BaseError).shortMessage || 'Failed to approve token');
+      },
+    },
     address: selectedCurrency.address as `0x${string}`,
+    abi: erc20Abi,
     functionName: 'approve',
-    args: amount ? [
-      contractAddresses.P2PEscrow as `0x${string}`,
-      parseEther(amount)
-    ] : undefined,
-  } as UseContractWriteConfig);
+  });
+
+  // Create trade
+  const { writeContract: createTrade, isPending: isCreating } = useContractWrite({
+    mutation: {
+      onSuccess: () => {
+        toast.success('Trade created successfully!');
+        router.push('/p2p');
+      },
+      onError: (error) => {
+        toast.error((error as BaseError).shortMessage || 'Failed to create trade');
+      },
+    },
+    address: P2P_ESCROW_ADDRESS as `0x${string}`,
+    abi: P2PEscrowABI.abi,
+    functionName: 'createTrade',
+  });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!approveToken || !createTrade) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
     try {
-      if (!selectedPaymentMethods.length) {
-        toast.error('Please select at least one payment method');
-        return;
-      }
-
-      if (!amount || !price || !minAmount || !maxAmount) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      if (parseFloat(minAmount) > parseFloat(amount)) {
-        toast.error('Minimum amount cannot be greater than total amount');
-        return;
-      }
-
-      if (parseFloat(maxAmount) < parseFloat(minAmount)) {
-        toast.error('Maximum amount cannot be less than minimum amount');
-        return;
-      }
-
-      // For sell orders, we need to approve the contract first
-      if (tradeType === 'SELL' && approveToken) {
-        try {
-          await approveToken();
-          toast.success('Token approval initiated. Please confirm the transaction in your wallet.');
-          return;
-        } catch (error: any) {
-          console.error('Approval error:', error);
-          toast.error(error.message || 'Failed to approve token. Please try again.');
-          return;
-        }
-      }
-
-      setIsLoading(true);
-
-      // Create the trade
-      await createTradeFromContract(
-        selectedCurrency.address,
-        amount,
-        price,
-        selectedPaymentMethods.join(','),
-        paymentDetails,
-        selectedPaymentMethods.includes('minipay')
-      );
-
-      toast.success('Trade created successfully!');
-      router.push('/p2p');
-    } catch (error: any) {
-      console.error('Error creating trade:', error);
-      toast.error(error.message || 'Failed to create trade. Please try again.');
-    } finally {
-      setIsLoading(false);
+      // First approve the token
+      toast.loading('Approving token...');
+      await approveToken({
+        args: [P2P_ESCROW_ADDRESS as `0x${string}`, parseEther(amount || '0')]
+      });
+      
+      // Then create the trade
+      toast.loading('Creating trade...');
+      await createTrade({
+        args: [
+          selectedCurrency.address,
+          parseEther(amount || '0'),
+          parseEther(price || '0'),
+          selectedPaymentMethods.join(',')
+        ]
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      const baseError = error as BaseError;
+      toast.error(baseError.shortMessage || 'Failed to create trade');
     }
   };
 
