@@ -9,9 +9,11 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { celo, celoAlfajores } from 'wagmi/chains';
-
-import Layout from '../components/Layout';
+import { type Chain } from 'viem';
 import { injectedWallet } from '@rainbow-me/rainbowkit/wallets';
+
+// Use Alfajores for development
+const defaultChain = celoAlfajores;
 
 const connectors = connectorsForWallets(
   [
@@ -21,28 +23,34 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: 'Celo Composer',
+    appName: 'CeloSwap P2P',
     projectId: process.env.WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
   }
 );
 
 const config = createConfig({
-  connectors,
-  chains: [celo, celoAlfajores],
+  chains: [defaultChain],
   transports: {
-    [celo.id]: http(),
-    [celoAlfajores.id]: http(),
+    [defaultChain.id]: http(),
   },
+  connectors,
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+    },
+  },
+});
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <Layout>{children}</Layout>
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

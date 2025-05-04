@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foreground-rgb: 17, 24, 39;
+    --background-start-rgb: 249, 250, 251;
+    --background-end-rgb: 255, 255, 255;
+    --primary-color: 0, 149, 95;
+    --primary-light: 207, 242, 229;
+    --secondary-color: 234, 60, 88;
+    --border-radius: 0.75rem;
+  }
+
+  /* Base styles */
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+      135deg,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    );
+    min-height: 100vh;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Modern scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-color), 0.3);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--primary-color), 0.5);
+  }
+
+  /* Form elements */
+  input, select, textarea {
+    @apply transition-all duration-200;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-ring ring-offset-2;
+  }
+}
+
+@layer components {
+  /* Glass effect */
+  .glass {
+    @apply bg-white bg-opacity-70 backdrop-blur-lg;
+  }
+
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply hover:shadow-md hover:translate-y-[-2px] transition-all duration-300;
+  }
+
+  /* Button styles */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white 
+           hover:bg-primary-comp 
+           focus:ring-primary-ring;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-gray-700 border border-gray-200
+           hover:bg-gray-50 hover:border-gray-300
+           focus:ring-gray-500;
+  }
+}
+
+@layer utilities {
+  /* Animation classes */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-scale {
+    animation: scale 0.2s ease-out;
+  }
+
+  /* Hover effects */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-[1.02];
+  }
+
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
+  }
+}
+
+/* Toast styling */
+.sonner-toast {
+  --border-radius: var(--border-radius) !important;
+  --shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important;
+  @apply font-medium;
+}
+
+/* RainbowKit customization */
+[data-rk] {
+  --rk-colors-accentColor: rgb(var(--primary-color)) !important;
+  --rk-colors-connectButtonBackground: rgb(var(--primary-color)) !important;
+  --rk-radii-actionButton: var(--border-radius) !important;
+  --rk-radii-connectButton: var(--border-radius) !important;
+  --rk-radii-modal: var(--border-radius) !important;
+  --rk-fonts-body: inherit !important;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading {
+  @apply relative opacity-70 pointer-events-none;
+}
+
+.loading::after {
+  content: '';
+  @apply absolute top-1/2 left-1/2 w-5 h-5 border-2 border-gray-200 border-t-primary rounded-full;
+  animation: spin 0.6s linear infinite;
+  margin: -0.5rem 0 0 -0.5rem;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale {
+  from { transform: scale(0.95); }
+  to { transform: scale(1); }
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .card {
+    @apply rounded-lg;
+  }
+} 
