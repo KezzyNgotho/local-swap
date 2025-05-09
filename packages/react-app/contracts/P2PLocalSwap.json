@@ -3,27 +3,22 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_disputeResolutionTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_arbitrator",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_minEscrowAmount",
+        "name": "_disputeTimelock",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_maxEscrowAmount",
+        "name": "_platformFee",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_minReleaseTime",
+        "name": "_minTradeAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxTradeAmount",
         "type": "uint256"
       }
     ],
@@ -35,115 +30,8 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "newArbitrator",
-        "type": "address"
-      }
-    ],
-    "name": "ArbitratorUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
         "internalType": "uint256",
-        "name": "escrowId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "depositor",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "beneficiary",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      }
-    ],
-    "name": "EscrowCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "escrowId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "disputer",
-        "type": "address"
-      }
-    ],
-    "name": "EscrowDisputed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "minAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "maxAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "EscrowLimitsUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "escrowId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "beneficiary",
-        "type": "address"
-      }
-    ],
-    "name": "EscrowReleased",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "escrowId",
+        "name": "tradeId",
         "type": "uint256"
       },
       {
@@ -153,7 +41,7 @@
         "type": "address"
       }
     ],
-    "name": "EscrowResolved",
+    "name": "DisputeResolved",
     "type": "event"
   },
   {
@@ -162,11 +50,11 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "newTime",
+        "name": "newTimelock",
         "type": "uint256"
       }
     ],
-    "name": "MinReleaseTimeUpdated",
+    "name": "DisputeTimelockUpdated",
     "type": "event"
   },
   {
@@ -206,6 +94,107 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "newFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "PlatformFeeUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tradeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "taker",
+        "type": "address"
+      }
+    ],
+    "name": "TradeCompleted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tradeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "maker",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "TradeCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tradeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "disputer",
+        "type": "address"
+      }
+    ],
+    "name": "TradeDisputed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "minAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "TradeLimitsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -215,37 +204,27 @@
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "arbitrator",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_tradeId",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "completeTrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_beneficiary",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
-        "name": "_releaseTime",
+        "name": "_price",
         "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
       }
     ],
-    "name": "createEscrow",
+    "name": "createTrade",
     "outputs": [
       {
         "internalType": "uint256",
@@ -257,21 +236,34 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "disputeTimelock",
+    "outputs": [
       {
         "internalType": "uint256",
-        "name": "_escrowId",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "name": "disputeEscrow",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tradeId",
+        "type": "uint256"
+      }
+    ],
+    "name": "disputeTrade",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "disputeResolutionTime",
+    "name": "getTradeCount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -286,20 +278,20 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_tradeId",
         "type": "uint256"
       }
     ],
-    "name": "escrows",
+    "name": "getTradeDetails",
     "outputs": [
       {
         "internalType": "address",
-        "name": "depositor",
+        "name": "maker",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "beneficiary",
+        "name": "taker",
         "type": "address"
       },
       {
@@ -309,12 +301,17 @@
       },
       {
         "internalType": "uint256",
-        "name": "releaseTime",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "disputeTimelock",
         "type": "uint256"
       },
       {
         "internalType": "bool",
-        "name": "isReleased",
+        "name": "isCompleted",
         "type": "bool"
       },
       {
@@ -329,13 +326,8 @@
       },
       {
         "internalType": "uint256",
-        "name": "releasedAt",
+        "name": "completedAt",
         "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -343,79 +335,7 @@
   },
   {
     "inputs": [],
-    "name": "getEscrowCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_escrowId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getEscrowDetails",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "depositor",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "beneficiary",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "releaseTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isReleased",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "isDisputed",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "createdAt",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "releasedAt",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "maxEscrowAmount",
+    "name": "maxTradeAmount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -428,20 +348,7 @@
   },
   {
     "inputs": [],
-    "name": "minEscrowAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "minReleaseTime",
+    "name": "minTradeAmount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -486,16 +393,16 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "platformFee",
+    "outputs": [
       {
         "internalType": "uint256",
-        "name": "_escrowId",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "name": "releaseEscrow",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -509,7 +416,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_escrowId",
+        "name": "_tradeId",
         "type": "uint256"
       },
       {
@@ -521,6 +428,78 @@
     "name": "resolveDispute",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tradeId",
+        "type": "uint256"
+      }
+    ],
+    "name": "takeTrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "trades",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "maker",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "taker",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "disputeTimelock",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isCompleted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isDisputed",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "completedAt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -546,12 +525,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_newArbitrator",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_newTimelock",
+        "type": "uint256"
       }
     ],
-    "name": "updateArbitrator",
+    "name": "updateDisputeTimelock",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -560,11 +539,11 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_newTime",
+        "name": "_newFee",
         "type": "uint256"
       }
     ],
-    "name": "updateDisputeResolutionTime",
+    "name": "updatePlatformFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -582,20 +561,7 @@
         "type": "uint256"
       }
     ],
-    "name": "updateEscrowLimits",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_newTime",
-        "type": "uint256"
-      }
-    ],
-    "name": "updateMinReleaseTime",
+    "name": "updateTradeLimits",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

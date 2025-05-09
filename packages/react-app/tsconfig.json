@@ -23,7 +23,8 @@
     "paths": {
       "@/*": ["./*"],
       "@local-contracts/*": ["../hardhat/*"]
-    }
+    },
+    "types": ["node", "react", "wagmi", "viem"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

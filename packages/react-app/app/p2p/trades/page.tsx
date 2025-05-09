@@ -6,6 +6,21 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useP2PExchange } from '../../../hooks/useP2PExchange';
 import { toast } from 'sonner';
 import { formatEther } from 'viem';
+import Link from 'next/link';
+
+type TradeStatus = 'ACTIVE' | 'LOCKED' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED';
+
+interface Trade {
+  id: string;
+  token: string;
+  amount: string;
+  price: string;
+  status: TradeStatus;
+  seller: string;
+  buyer: string;
+  createdAt: string;
+  paymentMethod: string;
+}
 
 export default function Trades() {
   const { address, isConnected } = useAccount();
@@ -13,6 +28,9 @@ export default function Trades() {
   const [selectedTrade, setSelectedTrade] = useState<number | null>(null);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   if (!isConnected) {
     return (
@@ -52,7 +70,7 @@ export default function Trades() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: TradeStatus) => {
     switch (status) {
       case 'ACTIVE':
         return 'bg-green-100 text-green-800';
@@ -69,67 +87,127 @@ export default function Trades() {
     }
   };
 
+  // Filter and sort trades
+  const filteredTrades = trades
+    .filter(trade => {
+      if (filter === 'all') return true;
+      return trade.status.toLowerCase() === filter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date') {
+        return sortOrder === 'asc' 
+          ? Number(a.createdAt) - Number(b.createdAt)
+          : Number(b.createdAt) - Number(a.createdAt);
+      } else {
+        return sortOrder === 'asc'
+          ? Number(a.amount) - Number(b.amount)
+          : Number(b.amount) - Number(a.amount);
+      }
+    });
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">My Trades</h1>
-          <button
-            onClick={() => window.location.href = '/p2p/create'}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+    <div className="min-h-screen bg-[#181A20] text-white">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold">My Trades</h1>
+          <div className="flex gap-4">
+            <Link
+              href="/p2p/create"
+              className="px-4 py-2 bg-[#F0B90B] text-black rounded-lg font-semibold hover:bg-[#F0B90B]/90 transition-colors"
           >
             Create New Trade
+            </Link>
+          </div>
+        </div>
+
+        {/* Filters and Sort */}
+        <div className="bg-[#23262F] rounded-xl p-4 mb-6">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1 rounded-lg ${filter === 'all' ? 'bg-[#F0B90B] text-black' : 'bg-[#181A20] text-white'}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('active')}
+                className={`px-3 py-1 rounded-lg ${filter === 'active' ? 'bg-[#F0B90B] text-black' : 'bg-[#181A20] text-white'}`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`px-3 py-1 rounded-lg ${filter === 'completed' ? 'bg-[#F0B90B] text-black' : 'bg-[#181A20] text-white'}`}
+              >
+                Completed
+              </button>
+              <button
+                onClick={() => setFilter('cancelled')}
+                className={`px-3 py-1 rounded-lg ${filter === 'cancelled' ? 'bg-[#F0B90B] text-black' : 'bg-[#181A20] text-white'}`}
+              >
+                Cancelled
+              </button>
+            </div>
+            <div className="flex gap-2 ml-auto">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')}
+                className="bg-[#181A20] text-white px-3 py-1 rounded-lg"
+              >
+                <option value="date">Date</option>
+                <option value="amount">Amount</option>
+              </select>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="bg-[#181A20] text-white px-3 py-1 rounded-lg"
+              >
+                {sortOrder === 'asc' ? '↑' : '↓'}
           </button>
+            </div>
+          </div>
         </div>
 
         {/* Trades List */}
-        <div className="grid gap-6">
-          {trades.map((trade, index) => (
+        <div className="space-y-4">
+          {filteredTrades.length > 0 ? (
+            filteredTrades.map((trade, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6"
+                className="bg-[#23262F] rounded-xl p-6 border border-[#333] hover:border-[#F0B90B] transition-colors"
             >
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(trade.status)}`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(trade.status)}`}>
                       {trade.status}
                     </span>
-                    <span className="text-gray-500 text-sm">
-                      ID: {index}
+                      <span className="text-gray-400 text-sm">
+                        {new Date(Number(trade.createdAt)).toLocaleDateString()}
                     </span>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Amount</p>
-                      <p className="font-medium">{formatEther(trade.amount)} tokens</p>
+                        <p className="text-gray-400 text-sm">Token</p>
+                        <p className="font-semibold">{trade.token}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Price</p>
-                      <p className="font-medium">{formatEther(trade.price)} tokens</p>
+                        <p className="text-gray-400 text-sm">Amount</p>
+                        <p className="font-semibold">{formatEther(BigInt(trade.amount))}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Payment Method</p>
-                      <p className="font-medium">{trade.paymentMethod}</p>
+                        <p className="text-gray-400 text-sm">Price</p>
+                        <p className="font-semibold">{formatEther(BigInt(trade.price))}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Created At</p>
-                      <p className="font-medium">
-                        {new Date(Number(trade.createdAt) * 1000).toLocaleString()}
+                        <p className="text-gray-400 text-sm">Type</p>
+                        <p className="font-semibold">
+                          {trade.seller === address ? 'Sell' : 'Buy'}
                       </p>
+                      </div>
                     </div>
                   </div>
-
-                  {trade.paymentDetails && (
-                    <div className="mt-4 bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">Payment Details</p>
-                      <p className="text-sm whitespace-pre-wrap">{trade.paymentDetails}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                  <div className="flex flex-wrap gap-2">
                   {trade.status === 'ACTIVE' && (
                     <>
                       <button
@@ -137,7 +215,7 @@ export default function Trades() {
                           setSelectedTrade(index);
                           handleAction('lock');
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+                          className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
                         disabled={isLoading}
                       >
                         Lock
@@ -147,14 +225,13 @@ export default function Trades() {
                           setSelectedTrade(index);
                           handleAction('cancel');
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
                         disabled={isLoading}
                       >
                         Cancel
                       </button>
                     </>
                   )}
-                  
                   {trade.status === 'LOCKED' && (
                     <>
                       <button
@@ -162,7 +239,7 @@ export default function Trades() {
                           setSelectedTrade(index);
                           handleAction('complete');
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                         disabled={isLoading}
                       >
                         Complete
@@ -172,7 +249,7 @@ export default function Trades() {
                           setSelectedTrade(index);
                           handleAction('dispute');
                         }}
-                        className="flex-1 md:flex-none px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                         disabled={isLoading}
                       >
                         Dispute
@@ -182,17 +259,16 @@ export default function Trades() {
                 </div>
               </div>
             </div>
-          ))}
-
-          {trades.length === 0 && (
-            <div className="text-center py-12 bg-gray-50 rounded-xl">
-              <p className="text-gray-500 text-lg">No trades found</p>
-              <button
-                onClick={() => window.location.href = '/p2p/create'}
-                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            ))
+          ) : (
+            <div className="text-center py-12 bg-[#23262F] rounded-xl">
+              <p className="text-gray-400 text-lg mb-4">No trades found</p>
+              <Link
+                href="/p2p/create"
+                className="inline-block px-6 py-2 bg-[#F0B90B] text-black rounded-lg font-semibold hover:bg-[#F0B90B]/90 transition-colors"
               >
                 Create Your First Trade
-              </button>
+              </Link>
             </div>
           )}
         </div>
